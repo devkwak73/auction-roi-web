@@ -1,4 +1,8 @@
 :root {
+/* Next.js 개발 인디케이터 숨김 */
+[data-nextjs-toast] {
+  display: none !important;
+}
   --background: #f8fafc; /* 약간의 회색기가 있는 배경으로 화이트 카드 부각 */
   --foreground: #0f172a;
   --primary: #1A4332; /* 리치스쿨 진한 초록 */
