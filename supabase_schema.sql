@@ -2,8 +2,14 @@
 CREATE TABLE profiles (
     id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
+    username TEXT UNIQUE,
+    name TEXT,
     is_approved BOOLEAN DEFAULT FALSE,
     is_admin BOOLEAN DEFAULT FALSE,
+    house_count INTEGER DEFAULT 1,
+    is_business BOOLEAN DEFAULT FALSE,
+    previous_year_profit BIGINT DEFAULT 0,
+    current_year_profit BIGINT DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -17,7 +23,7 @@ CREATE TABLE properties (
     building_area DECIMAL DEFAULT 0.0,
     auction_price BIGINT NOT NULL,
     expected_sale_price BIGINT NOT NULL,
-    public_price BIGINT NOT NULL,
+    public_price BIGINT,
     is_adjustment_area BOOLEAN DEFAULT FALSE,
     is_redevelopment_area BOOLEAN DEFAULT FALSE,
     is_local_area BOOLEAN DEFAULT FALSE,

@@ -2,42 +2,38 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-    const router = useRouter();
-
+    
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setErrorMsg('');
         
-        console.log('Attempting login for:', email);
-
         try {
+            // 아이디를 이메일 형식으로 변환
+            const email = `${username}@auction.local`;
+            
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
-            console.log('Login result:', { data, error });
-
             if (error) {
-                setErrorMsg(error.message);
+                setErrorMsg('아이디 또는 비밀번호가 올바르지 않습니다.');
                 setLoading(false);
             } else {
-                console.log('Success! Redirecting to home...');
-                // router.push 대신 window.location을 사용하여 세션 쿠키가 확실히 반영된 상태로 새로고침하며 이동하도록 함
                 window.location.href = '/';
             }
-        } catch (err: any) {
-            console.error('Login caught error:', err);
-            setErrorMsg('시스템 오류가 발생했습니다: ' + err.message);
+        } catch (err: unknown) {
+            console.error('Login error:', err);
+            const message = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+            setErrorMsg('시스템 오류가 발생했습니다: ' + message);
             setLoading(false);
         }
     };
@@ -51,13 +47,13 @@ export default function LoginPage() {
                 </p>
 
                 <form onSubmit={handleLogin}>
-                    <label className="label">이메일</label>
+                    <label className="label">아이디</label>
                     <input
-                        type="email"
+                        type="text"
                         className="input-field"
-                        placeholder="example@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="아이디를 입력하세요"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         required
                     />
 
@@ -77,7 +73,7 @@ export default function LoginPage() {
                 </form>
 
                 <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#94a3b8' }}>
-                    계정이 없으신가요? <Link href="/auth/signup" style={{ color: '#6366f1', fontWeight: 600 }}>회원가입 신청</Link>
+                    계정이 없으신가요? <Link href="/auth/signup" style={{ color: '#6366f1', fontWeight: 600 }}>회원가입</Link>
                 </p>
 
                 {errorMsg && (

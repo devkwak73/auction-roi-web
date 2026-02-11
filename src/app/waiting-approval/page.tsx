@@ -16,7 +16,7 @@ export default function WaitingApprovalPage() {
             <div className="card" style={{ width: '100%', maxWidth: '500px', textAlign: 'center' }}>
                 <div style={{ fontSize: '48px', marginBottom: '24px' }}>⏳</div>
                 <h1 className="title">승인 대기 중</h1>
-                <p style={{ color: '#94a3b8', marginBottom: '32px', lineHeight: '1.6' }}>
+                <p style={{ color: 'var(--muted)', marginBottom: '32px', lineHeight: '1.6' }}>
                     계정 생성이 완료되었습니다.<br />
                     관리자가 가입을 승인한 후에 서비스를 이용하실 수 있습니다.<br />
                     잠시만 기다려 주세요.
@@ -26,7 +26,7 @@ export default function WaitingApprovalPage() {
                     <button onClick={() => window.location.reload()} className="button button-primary">
                         새로고침하여 상태 확인
                     </button>
-                    <button onClick={handleLogout} className="button button-outline">
+                    <button onClick={handleLogout} className="button button-secondary">
                         로그아웃
                     </button>
                 </div>

@@ -6,31 +6,32 @@ export enum PropertyType {
 
 export interface Property {
     id?: number;
-    caseNumber: string;
-    propertyType: PropertyType;
+    user_id?: string;
+    case_number: string;
+    property_type: PropertyType;
     address: string;
-    buildingArea: number;
-    auctionPrice: number;
-    expectedSalePrice: number;
-    publicPrice: number;
-    isAdjustmentArea: boolean;
-    isRedevelopmentArea: boolean;
-    isLocalArea: boolean;
+    building_area: number;
+    auction_price: number;
+    expected_sale_price: number;
+    public_price?: number;
+    is_adjustment_area: boolean;
+    is_redevelopment_area: boolean;
+    is_local_area: boolean;
     
     // 비용 항목
-    loanAmount: number;
-    loanMonths: number;
-    interestRate: number;
-    interiorCost: number;
-    evictionCost: number;
-    brokerageFee: number;
-    vacancyManagementCost: number;
-    otherCosts: number;
+    loan_amount: number;
+    loan_months: number;
+    interest_rate: number;
+    interior_cost: number;
+    eviction_cost: number;
+    brokerage_fee: number;
+    vacancy_management_cost: number;
+    other_costs: number;
     
     // 임대 정보
-    monthlyRent: number;
-    monthlyDeposit: number;
-    jeonseDeposit: number;
+    monthly_rent: number;
+    monthly_deposit: number;
+    jeonse_deposit: number;
     
     // 메타 정보
     notes?: string;
@@ -39,9 +40,10 @@ export interface Property {
 }
 
 export interface TaxProfile {
-    currentHouseCount: number;
+    houseCount: number;
     isBusiness: boolean;
-    currentYearProfit: number;
+    previousYearProfit: number; // 전년도 매출(소득)
+    currentYearProfit: number;  // 올해 타 소득
 }
 
 export interface ROIReport {
@@ -75,4 +77,12 @@ export interface JeonseScenario {
     actualInvestment: number;
     isPlusP: boolean;
     deposit: number;
+}
+
+export interface BidPriceResult {
+    maxBidPrice: number;
+    achievedRoi: number;
+    targetRoi: number;
+    roiDifference: number;
+    report: ROIReport;
 }

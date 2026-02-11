@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { PropertyType } from '@/lib/types';
 import { calculateBrokerageFee } from '@/lib/utils/brokerageFee';
 import Modal from '@/components/Modal';
 
-export default function NewPropertyPage() {
+export default function EditPropertyPage() {
+    const { id } = useParams();
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [modal, setModal] = useState<{ isOpen: boolean; type: 'success' | 'error'; message: string }>({ 
         isOpen: false, 
         type: 'error', 
@@ -27,12 +29,50 @@ export default function NewPropertyPage() {
         loan_amount: '',
         interest_rate: '5.0',
         loan_months: '6',
-        interior_cost: '2,000,000',
-        eviction_cost: '1,000,000',
+        interior_cost: '0',
+        eviction_cost: '0',
         brokerage_fee: '0',
         other_costs: '0',
         notes: ''
     });
+
+    useEffect(() => {
+        fetchProperty();
+    }, [id]);
+
+    const fetchProperty = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('properties')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error || !data) {
+            router.push('/');
+            return;
+        }
+
+        setFormData({
+            case_number: data.case_number,
+            property_type: data.property_type,
+            address: data.address,
+            building_area: String(data.building_area),
+            auction_price: formatNumber(String(data.auction_price)),
+            expected_sale_price: formatNumber(String(data.expected_sale_price)),
+            public_price: data.public_price ? formatNumber(String(data.public_price)) : '',
+            is_adjustment_area: data.is_adjustment_area,
+            loan_amount: formatNumber(String(data.loan_amount)),
+            interest_rate: String(data.interest_rate),
+            loan_months: String(data.loan_months),
+            interior_cost: formatNumber(String(data.interior_cost)),
+            eviction_cost: formatNumber(String(data.eviction_cost)),
+            brokerage_fee: formatNumber(String(data.brokerage_fee)),
+            other_costs: formatNumber(String(data.other_costs)),
+            notes: data.notes || ''
+        });
+        setLoading(false);
+    };
 
     const formatNumber = (val: string) => {
         if (!val) return '';
@@ -41,6 +81,7 @@ export default function NewPropertyPage() {
     };
 
     const parseNumber = (val: string) => {
+        if (typeof val !== 'string') return val;
         return parseFloat(val.replace(/,/g, '')) || 0;
     };
 
@@ -53,7 +94,7 @@ export default function NewPropertyPage() {
             const formatted = formatNumber(value);
             const updates: any = { [name]: formatted };
             
-            // 낙찰가 입력 시 대출금액 및 중개수수료 자동 계산
+            // 낙찰가 입력 시 대출금액 및 중개수수료 자동 계산 (원치 않을 수도 있지만 기본 로직 유지)
             if (name === 'auction_price') {
                 const auctionPrice = parseNumber(formatted);
                 if (auctionPrice > 0) {
@@ -70,14 +111,10 @@ export default function NewPropertyPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        setSaving(true);
 
         const submissionData = {
             ...formData,
-            user_id: session.user.id,
             building_area: parseFloat(formData.building_area) || 0,
             auction_price: parseNumber(formData.auction_price),
             expected_sale_price: parseNumber(formData.expected_sale_price),
@@ -91,19 +128,24 @@ export default function NewPropertyPage() {
             other_costs: parseNumber(formData.other_costs)
         };
 
-        const { error } = await supabase.from('properties').insert([submissionData]);
+        const { error } = await supabase
+            .from('properties')
+            .update(submissionData)
+            .eq('id', id);
 
         if (!error) {
-            router.push('/');
+            router.push(`/properties/${id}`);
         } else {
-            setModal({ isOpen: true, type: 'error', message: `등록 중 오류가 발생했습니다: ${error.message}` });
+            setModal({ isOpen: true, type: 'error', message: `수정 중 오류가 발생했습니다: ${error.message}` });
         }
-        setLoading(false);
+        setSaving(false);
     };
+
+    if (loading) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>데이터 불러오는 중...</div>;
 
     return (
         <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px' }}>
-            <h1 className="title">새 물건 등록</h1>
+            <h1 className="title">물건 정보 수정</h1>
             
             <form onSubmit={handleSubmit} className="card">
                 {/* 기본 정보 */}
@@ -149,7 +191,6 @@ export default function NewPropertyPage() {
                     <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', color: '#f59e0b' }}>대출 및 부대비용</h2>
                     <label className="label">대출금액 (원)</label>
                     <input type="text" name="loan_amount" className="input-field" placeholder="0" onChange={handleChange} value={formData.loan_amount} />
-                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', marginBottom: '16px' }}>낙찰가의 80%가 자동 입력됩니다</p>
                     
                     <label className="label">이율 (%)</label>
                     <input type="number" step="0.1" name="interest_rate" className="input-field" placeholder="5.0" onChange={handleChange} value={formData.interest_rate} />
@@ -176,18 +217,18 @@ export default function NewPropertyPage() {
 
                 <div style={{ marginTop: '40px', display: 'flex', gap: '16px', justifyContent: 'flex-end' }}>
                     <button type="button" onClick={() => router.back()} className="button button-secondary">취소</button>
-                    <button type="submit" className="button button-primary" style={{ paddingLeft: '40px', paddingRight: '40px' }} disabled={loading}>
-                        {loading ? '저장 중...' : '물건 등록 완료'}
+                    <button type="submit" className="button button-primary" style={{ paddingLeft: '40px', paddingRight: '40px' }} disabled={saving}>
+                        {saving ? '저장 중...' : '정보 수정 완료'}
                     </button>
                 </div>
-                </form>
+            </form>
 
-                <Modal
-                    isOpen={modal.isOpen}
-                    onClose={() => setModal({ ...modal, isOpen: false })}
-                    type={modal.type}
-                    message={modal.message}
-                />
-            </div>
-        );
-    }
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={() => setModal({ ...modal, isOpen: false })}
+                type={modal.type}
+                message={modal.message}
+            />
+        </div>
+    );
+}

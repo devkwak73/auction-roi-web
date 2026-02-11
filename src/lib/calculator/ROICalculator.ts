@@ -10,25 +10,25 @@ export class ROICalculator {
 
     calculate(property: Property, taxProfile: TaxProfile): ROIReport {
         const acquisitionTax = this.acquisitionTaxCalc.calculate(
-            property.auctionPrice,
-            property.buildingArea,
-            taxProfile.currentHouseCount,
-            property.isAdjustmentArea,
-            property.propertyType
+            property.auction_price,
+            property.building_area,
+            taxProfile.houseCount,
+            property.is_adjustment_area,
+            property.property_type
         );
 
         const acquisitionTaxRateInfo = this.acquisitionTaxCalc.getTaxRateInfo(
-            property.auctionPrice,
-            property.buildingArea,
-            taxProfile.currentHouseCount,
-            property.isAdjustmentArea,
-            property.propertyType
+            property.auction_price,
+            property.building_area,
+            taxProfile.houseCount,
+            property.is_adjustment_area,
+            property.property_type
         );
 
         const commonExpenses = 
-            property.interiorCost + property.evictionCost + 
-            property.brokerageFee + property.vacancyManagementCost + 
-            property.otherCosts;
+            property.interior_cost + property.eviction_cost + 
+            property.brokerage_fee + property.vacancy_management_cost + 
+            property.other_costs;
 
         const saleScenario = this.calculateSaleScenario(
             property, taxProfile, acquisitionTax, commonExpenses
@@ -58,19 +58,19 @@ export class ROICalculator {
         commonExpenses: number
     ): SaleScenario {
         const loanInterest = this.calculateLoanInterest(
-            property.loanAmount,
-            property.interestRate,
-            property.loanMonths
+            property.loan_amount,
+            property.interest_rate,
+            property.loan_months
         );
 
-        const totalCost = property.auctionPrice + acquisitionTax + loanInterest + commonExpenses;
-        const grossProfit = property.expectedSalePrice - totalCost;
+        const totalCost = property.auction_price + acquisitionTax + loanInterest + commonExpenses;
+        const grossProfit = property.expected_sale_price - totalCost;
 
         const taxResult = this.calculateTaxes(property, taxProfile, grossProfit);
         const appliedTax = taxResult.appliedTax;
         
         const netProfit = grossProfit - appliedTax;
-        const actualInvestment = (property.auctionPrice - property.loanAmount) + acquisitionTax + commonExpenses + loanInterest;
+        const actualInvestment = (property.auction_price - property.loan_amount) + acquisitionTax + commonExpenses + loanInterest;
 
         const roi = actualInvestment > 0 ? (netProfit / actualInvestment) * 100 : 0;
 
@@ -90,20 +90,20 @@ export class ROICalculator {
         acquisitionTax: number,
         commonExpenses: number
     ): RentScenario {
-        const monthlyInterest = Math.floor(property.loanAmount * (property.interestRate / 100.0) / 12.0);
-        const monthlyNetIncome = property.monthlyRent - monthlyInterest;
+        const monthlyInterest = Math.floor(property.loan_amount * (property.interest_rate / 100.0) / 12.0);
+        const monthlyNetIncome = property.monthly_rent - monthlyInterest;
         const annualNetIncome = monthlyNetIncome * 12;
 
-        const actualInvestment = (property.auctionPrice - property.loanAmount - property.monthlyDeposit) + acquisitionTax + commonExpenses;
+        const actualInvestment = (property.auction_price - property.loan_amount - property.monthly_deposit) + acquisitionTax + commonExpenses;
         const rentalYield = actualInvestment > 0 ? (annualNetIncome / actualInvestment) * 100 : 0;
 
         return {
-            monthlyRent: property.monthlyRent,
+            monthlyRent: property.monthly_rent,
             monthlyInterest,
             monthlyNetIncome,
             actualInvestment,
             rentalYield,
-            deposit: property.monthlyDeposit
+            deposit: property.monthly_deposit
         };
     }
 
@@ -112,11 +112,11 @@ export class ROICalculator {
         acquisitionTax: number,
         commonExpenses: number
     ): JeonseScenario {
-        const actualInvestment = (property.auctionPrice - property.jeonseDeposit) + acquisitionTax + commonExpenses;
+        const actualInvestment = (property.auction_price - property.jeonse_deposit) + acquisitionTax + commonExpenses;
         return {
             actualInvestment,
             isPlusP: actualInvestment <= 0,
-            deposit: property.jeonseDeposit
+            deposit: property.jeonse_deposit
         };
     }
 
@@ -133,11 +133,11 @@ export class ROICalculator {
     ): { incomeTax: number, capitalGainsTax: number, appliedTax: number, taxInfo: string } {
         if (!taxProfile.isBusiness) {
             const capitalGainsTax = this.capitalGainsTaxCalc.calculate(
-                property.propertyType,
+                property.property_type,
                 grossProfit,
                 12,
-                taxProfile.currentHouseCount === 0,
-                property.publicPrice
+                taxProfile.houseCount === 0,
+                property.public_price || 0
             );
             return { incomeTax: 0, capitalGainsTax, appliedTax: capitalGainsTax, taxInfo: "양도소득세" };
         }
@@ -147,13 +147,13 @@ export class ROICalculator {
             grossProfit
         );
 
-        if (property.propertyType === PropertyType.HOUSE) {
+        if (property.property_type === PropertyType.HOUSE) {
             const capitalGainsTax = this.capitalGainsTaxCalc.calculate(
-                property.propertyType,
+                property.property_type,
                 grossProfit,
                 12,
-                taxProfile.currentHouseCount === 0,
-                property.publicPrice
+                taxProfile.houseCount === 0,
+                property.public_price || 0
             );
             const appliedTax = Math.min(incomeTax, capitalGainsTax);
             const taxInfo = appliedTax === incomeTax ? "사업소득세 (비교과세)" : "양도소득세 (비교과세)";
