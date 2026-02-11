@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
                 get(name: string) {
                     return request.cookies.get(name)?.value;
                 },
-                set(name: string, value: string, options: CookieOptions) {
+                    console.log('Middleware setting session cookie:', name);
                     request.cookies.set({
                         name,
                         value,
@@ -55,9 +55,11 @@ export async function middleware(request: NextRequest) {
     );
 
     const { data: { session } } = await supabase.auth.getSession();
+    console.log('Middleware path:', request.nextUrl.pathname, 'Session exists:', !!session);
 
     // 1. 로그인하지 않은 사용자가 보호된 페이지에 접근할 경우
     if (!session && !request.nextUrl.pathname.startsWith('/auth')) {
+        console.log('No session, redirecting to login');
         return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 
@@ -76,6 +78,7 @@ export async function middleware(request: NextRequest) {
 
         // 미승인 사용자는 메인 서비스 이용 불가
         if (!profile?.is_approved && request.nextUrl.pathname !== '/waiting-approval' && !request.nextUrl.pathname.startsWith('/auth')) {
+            console.log('User not approved, redirecting to waiting-approval');
             return NextResponse.redirect(new URL('/waiting-approval', request.url));
         }
     }
