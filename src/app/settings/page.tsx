@@ -14,12 +14,23 @@ export default function SettingsPage() {
         message: '' 
     });
     const [profile, setProfile] = useState({
+        name: '', 
         house_count: 1,
         is_business: false,
         previous_year_profit: '0',
         current_year_profit: '0'
     });
+    
+    // 비밀번호 변경 관련 상태
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: ''
+    });
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+
     const router = useRouter();
+    const [userEmail, setUserEmail] = useState('');
 
     useEffect(() => {
         fetchProfile();
@@ -38,15 +49,18 @@ export default function SettingsPage() {
     const fetchProfile = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
+        
+        setUserEmail(session.user.email || '');
 
         const { data, error } = await supabase
             .from('profiles')
-            .select('house_count,is_business,previous_year_profit,current_year_profit')
+            .select('name, house_count,is_business,previous_year_profit,current_year_profit')
             .eq('id', session.user.id)
             .single();
 
         if (!error && data) {
             setProfile({
+                name: data.name || '',
                 house_count: data.house_count || 0,
                 is_business: data.is_business || false,
                 previous_year_profit: formatNumber(String(data.previous_year_profit || 0)),
@@ -63,25 +77,81 @@ export default function SettingsPage() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
+        // 1. 프로필 정보 업데이트
         const submissionData = {
-            ...profile,
+            name: profile.name,
+            house_count: profile.house_count,
+            is_business: profile.is_business,
             previous_year_profit: parseNumber(profile.previous_year_profit),
             current_year_profit: parseNumber(profile.current_year_profit)
         };
 
-        const { error } = await supabase
+        const { error: profileError } = await supabase
             .from('profiles')
             .update(submissionData)
             .eq('id', session.user.id);
 
-        if (!error) {
-            setModal({ isOpen: true, type: 'success', message: '설정이 저장되었습니다.' });
-            setTimeout(() => {
-                router.push('/');
-            }, 1500);
-        } else {
-            setModal({ isOpen: true, type: 'error', message: '저장 중 오류가 발생했습니다.' });
+        if (profileError) {
+            setModal({ isOpen: true, type: 'error', message: '프로필 저장 중 오류가 발생했습니다.' });
+            setSaving(false);
+            return;
         }
+
+        // 2. 비밀번호 변경 (입력된 경우에만)
+        if (isChangingPassword) {
+            if (!passwordData.currentPassword || !passwordData.newPassword) {
+                setModal({ isOpen: true, type: 'error', message: '비밀번호를 모두 입력해주세요.' });
+                setSaving(false);
+                return;
+            }
+
+            if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+                setModal({ isOpen: true, type: 'error', message: '새 비밀번호가 일치하지 않습니다.' });
+                setSaving(false);
+                return;
+            }
+
+            if (passwordData.newPassword.length < 6) {
+                setModal({ isOpen: true, type: 'error', message: '새 비밀번호는 6자 이상이어야 합니다.' });
+                setSaving(false);
+                return;
+            }
+
+            // 현재 비밀번호 확인 (로그인 시도)
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: userEmail,
+                password: passwordData.currentPassword
+            });
+
+            if (signInError) {
+                setModal({ isOpen: true, type: 'error', message: '현재 비밀번호가 올바르지 않습니다.' });
+                setSaving(false);
+                return;
+            }
+
+            // 새 비밀번호 설정
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: passwordData.newPassword
+            });
+
+            if (updateError) {
+                setModal({ isOpen: true, type: 'error', message: '비밀번호 변경 실패: ' + updateError.message });
+                setSaving(false);
+                return;
+            }
+        }
+
+        setModal({ isOpen: true, type: 'success', message: '설정이 저장되었습니다.' });
+        // 비밀번호 변경 시 입력창 초기화 및 닫기
+        if (isChangingPassword) {
+            setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+            setIsChangingPassword(false);
+        }
+        
+        setTimeout(() => {
+            setModal(prev => ({ ...prev, isOpen: false }));
+        }, 1500);
+        
         setSaving(false);
     };
 
@@ -96,7 +166,92 @@ export default function SettingsPage() {
             <p style={{ color: '#94a3b8', marginBottom: '32px' }}>정확한 세금 및 ROI 계산을 위해 본인의 투자 프로필을 설정해주세요.</p>
 
             <form onSubmit={handleSave} className="card" style={{ maxWidth: '600px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '24px', color: 'var(--primary)' }}>내 투자 프로필</h2>
+                <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '24px', color: 'var(--primary)' }}>내 정보 수정</h2>
+                
+                <div style={{ marginBottom: '20px' }}>
+                    <label className="label">아이디 (이메일)</label>
+                    <input 
+                        type="text" 
+                        className="input-field" 
+                        value={userEmail} 
+                        disabled 
+                        style={{ backgroundColor: '#f1f5f9', color: '#64748b' }}
+                    />
+                </div>
+
+                <div style={{ marginBottom: '32px' }}>
+                    <label className="label">이름 (닉네임)</label>
+                    <input 
+                        type="text" 
+                        className="input-field" 
+                        value={profile.name} 
+                        onChange={(e) => setProfile({...profile, name: e.target.value})}
+                        placeholder="이름을 입력하세요"
+                        required
+                    />
+                </div>
+
+                {/* 비밀번호 변경 아코디언 */}
+                <div style={{ marginBottom: '32px', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
+                    <button 
+                        type="button"
+                        onClick={() => setIsChangingPassword(!isChangingPassword)}
+                        style={{ 
+                            width: '100%', 
+                            padding: '16px', 
+                            textAlign: 'left', 
+                            background: '#f8fafc', 
+                            border: 'none', 
+                            fontSize: '15px', 
+                            fontWeight: 600, 
+                            color: 'var(--foreground)',
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <span>🔒 비밀번호 변경</span>
+                        <span>{isChangingPassword ? '▲' : '▼'}</span>
+                    </button>
+                    
+                    {isChangingPassword && (
+                        <div style={{ padding: '20px', backgroundColor: '#ffffff', borderTop: '1px solid var(--border)' }}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label className="label">현재 비밀번호</label>
+                                <input 
+                                    type="password" 
+                                    className="input-field" 
+                                    value={passwordData.currentPassword} 
+                                    onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                                    placeholder="현재 비밀번호를 입력하세요"
+                                />
+                            </div>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label className="label">새 비밀번호</label>
+                                <input 
+                                    type="password" 
+                                    className="input-field" 
+                                    value={passwordData.newPassword} 
+                                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                                    placeholder="새 비밀번호 (6자 이상)"
+                                />
+                            </div>
+                            <div>
+                                <label className="label">새 비밀번호 확인</label>
+                                <input 
+                                    type="password" 
+                                    className="input-field" 
+                                    value={passwordData.confirmNewPassword} 
+                                    onChange={(e) => setPasswordData({...passwordData, confirmNewPassword: e.target.value})}
+                                    placeholder="새 비밀번호를 다시 입력하세요"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '24px', color: 'var(--primary)', paddingTop: '24px', borderTop: '1px solid var(--border)' }}>내 투자 프로필</h2>
 
                 <label className="label">현재 주택 수 (본인 세대 기준)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
