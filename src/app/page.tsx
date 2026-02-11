@@ -177,7 +177,7 @@ export default function Dashboard() {
                 onClick={() => router.push('/properties/new')}
                 style={{
                     position: 'fixed',
-                    bottom: '32px',
+                    bottom: '100px',
                     right: '32px',
                     width: '64px',
                     height: '64px',

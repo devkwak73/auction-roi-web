@@ -35,7 +35,7 @@ export default function RootLayout({
         </div>
       </nav>
       <main>{children}</main>
-      <footer style={{ backgroundColor: '#11221a', color: 'rgba(255, 255, 255, 0.6)', padding: '40px 0', marginTop: 'auto' }}>
+      <footer style={{ backgroundColor: '#11221a', color: 'rgba(255, 255, 255, 0.6)', padding: '24px 0', marginTop: 'auto' }}>
         <div className="container" style={{ textAlign: 'center', fontSize: '13px' }}>
           © 2026 AuctionHelper. Built for Boonom.
         </div>

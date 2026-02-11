@@ -1,7 +1,14 @@
 :root {
 /* Next.js 개발 인디케이터 숨김 */
-[data-nextjs-toast] {
+[data-nextjs-toast],
+[data-nextjs-toast-wrapper],
+[data-nextjs-dialog-overlay],
+nextjs-portal,
+#next-route-announcer {
   display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
   --background: #f8fafc; /* 약간의 회색기가 있는 배경으로 화이트 카드 부각 */
   --foreground: #0f172a;
