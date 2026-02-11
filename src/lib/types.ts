@@ -34,8 +34,8 @@ export interface Property {
     
     // 메타 정보
     notes?: string;
-    createdAt?: number;
-    updatedAt?: number;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface TaxProfile {
