@@ -158,15 +158,15 @@ export default function SettingsPage() {
             {/* 면책 조항 및 세금 설명 */}
             <div style={{ marginTop: '48px', padding: '24px', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', color: '#ef4444' }}>⚠️ 유의사항 및 이용약관</h3>
-                <p style={{ fontSize: '14px', lineHeight: '1.6', marginBottom: '16px', color: '#cbd5e1' }}>
+                <p style={{ fontSize: '14px', lineHeight: '1.6', marginBottom: '16px', color: '#475569' }}>
                     본 프로그램은 참고용 계산기이며, 실제 세금 및 수익률은 개인의 상황에 따라 달라질 수 있습니다.
                 </p>
                 
                 <div style={{ marginBottom: '16px' }}>
                     <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '8px', color: 'var(--primary)' }}>📋 세금 계산 방식</h4>
-                    <ul style={{ fontSize: '13px', lineHeight: '1.8', color: '#94a3b8', paddingLeft: '20px' }}>
+                    <ul style={{ fontSize: '13px', lineHeight: '1.8', color: '#475569', paddingLeft: '20px' }}>
                         <li>
-                            <strong style={{ color: '#cbd5e1' }}>취득세:</strong> 주택 수와 조정대상지역 여부에 따라 차등 적용
+                            <strong style={{ color: '#1e293b' }}>취득세:</strong> 주택 수와 조정대상지역 여부에 따라 차등 적용
                             <ul style={{ marginTop: '4px', paddingLeft: '20px' }}>
                                 <li>1주택: 1.1% ~ 3.5%</li>
                                 <li>2주택: 8%</li>
@@ -175,14 +175,14 @@ export default function SettingsPage() {
                             </ul>
                         </li>
                         <li style={{ marginTop: '8px' }}>
-                            <strong style={{ color: '#cbd5e1' }}>양도소득세:</strong>
+                            <strong style={{ color: '#1e293b' }}>양도소득세:</strong>
                             <ul style={{ marginTop: '4px', paddingLeft: '20px' }}>
                                 <li>매매사업자: 종합소득세로 계산 (과세표준에 따라 6%~45%)</li>
                                 <li>일반 개인: 양도소득세 기본세율 적용</li>
                             </ul>
                         </li>
                         <li style={{ marginTop: '8px' }}>
-                            <strong style={{ color: '#cbd5e1' }}>중개수수료:</strong> 낙찰가에 따라 법정 요율 자동 계산
+                            <strong style={{ color: '#1e293b' }}>중개수수료:</strong> 낙찰가에 따라 법정 요율 자동 계산
                             <ul style={{ marginTop: '4px', paddingLeft: '20px' }}>
                                 <li>5천만원 미만: 0.6%</li>
                                 <li>5천만원 ~ 2억원: 0.5%</li>
@@ -195,8 +195,8 @@ export default function SettingsPage() {
                 </div>
 
                 <div style={{ padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.2)', borderRadius: '8px', marginTop: '16px' }}>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#fca5a5', marginBottom: '4px' }}>⚠️ 본 프로그램의 계산 결과에 대한 책임은 전적으로 사용자 본인에게 있습니다.</p>
-                    <p style={{ fontSize: '13px', color: '#fca5a5' }}>⚠️ 정확한 세금 계산은 세무사와 상담하시기 바랍니다.</p>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#b91c1c', marginBottom: '4px' }}>⚠️ 본 프로그램의 계산 결과에 대한 책임은 전적으로 사용자 본인에게 있습니다.</p>
+                    <p style={{ fontSize: '13px', color: '#b91c1c' }}>⚠️ 정확한 세금 계산은 세무사와 상담하시기 바랍니다.</p>
                 </div>
             </div>
 
