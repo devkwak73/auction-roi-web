@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import './globals.css';
@@ -11,6 +13,26 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
   const isAuthPage = pathname.startsWith('/auth') || pathname === '/waiting-approval';
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdmin();
+  }, []);
+
+  const checkAdmin = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (data?.is_admin) {
+        setIsAdmin(true);
+      }
+    }
+  };
 
   const content = isAuthPage ? (
     <main>{children}</main>
@@ -30,6 +52,11 @@ export default function RootLayout({
             🏠 경매도우미
           </Link>
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            {isAdmin && (
+              <Link href="/admin" style={{ fontSize: '15px', fontWeight: 600, color: '#ffffff', textDecoration: 'none' }}>
+                👑 관리자
+              </Link>
+            )}
             <Link href="/settings" style={{ fontSize: '24px', textDecoration: 'none', color: '#ffffff' }}>⚙️</Link>
           </div>
         </div>
