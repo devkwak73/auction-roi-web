@@ -95,10 +95,18 @@ export default function SignupPage() {
             // 아이디를 이메일 형식으로 변환 (Supabase Auth는 이메일 필수)
             const email = `${username}@auction.local`;
 
-            // 1. Supabase Auth에 사용자 등록
+            // 1. Supabase Auth에 사용자 등록 (메타데이터 포함)
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email,
                 password,
+                options: {
+                    data: {
+                        name: name,
+                        username: username,
+                        house_count: 1,
+                        is_business: false
+                    }
+                }
             });
 
             if (authError) {
@@ -107,28 +115,17 @@ export default function SignupPage() {
                 return;
             }
 
-            // 2. profiles 테이블에 이름과 username 저장
+            // 2. profiles 테이블 업데이트 로직 제거 (Trigger로 자동 처리됨)
+            // 수동 업데이트 시 RLS 및 권한 문제로 실패할 수 있음
+            /*
             if (authData.user) {
                 const { error: profileError } = await supabase
                     .from('profiles')
-                    .upsert({ 
-                        id: authData.user.id,
-                        email: authData.user.email!,
-                        name: name,
-                        username: username,
-                        house_count: 1,
-                        is_business: false
-                    }, {
-                        onConflict: 'id'
-                    });
+                    .upsert({ ... }, { onConflict: 'id' });
 
-                if (profileError) {
-                    console.error('Profile update error:', profileError);
-                    setErrorMsg('프로필 업데이트 중 오류가 발생했습니다.');
-                    setLoading(false);
-                    return;
-                }
+                if (profileError) { ... }
             }
+            */
 
             setSuccessMsg('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다...');
             

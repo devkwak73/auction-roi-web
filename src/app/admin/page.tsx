@@ -106,17 +106,24 @@ export default function AdminPage() {
     const handleBulkApprove = async () => {
         if (selectedUserIds.length === 0) return;
 
-        const { error } = await supabase
-            .from('profiles')
-            .update({ is_approved: true })
-            .in('id', selectedUserIds);
+        try {
+            const response = await fetch('/api/admin/approve-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userIds: selectedUserIds })
+            });
 
-        if (!error) {
-            setModal({ isOpen: true, type: 'success', message: `${selectedUserIds.length}명의 사용자가 승인되었습니다.` });
-            setSelectedUserIds([]);
-            fetchUsers();
-        } else {
-            setModal({ isOpen: true, type: 'error', message: '승인 중 오류가 발생했습니다.' });
+            const result = await response.json();
+
+            if (response.ok) {
+                setModal({ isOpen: true, type: 'success', message: `${selectedUserIds.length}명의 사용자가 승인되었습니다.` });
+                setSelectedUserIds([]);
+                fetchUsers();
+            } else {
+                setModal({ isOpen: true, type: 'error', message: result.error || '승인 중 오류가 발생했습니다.' });
+            }
+        } catch (error) {
+            setModal({ isOpen: true, type: 'error', message: 'API 호출 중 오류가 발생했습니다.' });
         }
     };
 
