@@ -1,4 +1,4 @@
-import { PropertyType } from './types';
+import { PropertyType } from '../types';
 
 export class AcquisitionTaxCalculator {
     calculate(
