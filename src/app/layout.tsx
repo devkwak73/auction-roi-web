@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import './globals.css';
 
 export default function RootLayout({
   children,
@@ -11,9 +12,9 @@ export default function RootLayout({
   const pathname = usePathname();
   const isAuthPage = pathname.startsWith('/auth') || pathname === '/waiting-approval';
 
-  if (isAuthPage) return <>{children}</>;
-
-  return (
+  const content = isAuthPage ? (
+    <main>{children}</main>
+  ) : (
     <>
       <nav style={{ 
         borderBottom: '1px solid var(--border)', 
@@ -42,5 +43,13 @@ export default function RootLayout({
         </div>
       </footer>
     </>
+  );
+
+  return (
+    <html lang="ko">
+      <body>
+        {content}
+      </body>
+    </html>
   );
 }
