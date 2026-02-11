@@ -31,10 +31,9 @@ export default function LoginPage() {
                 setErrorMsg(error.message);
                 setLoading(false);
             } else {
-                console.log('Success! Redirecting...');
-                router.push('/');
-                // 브라우저 캐시 문제 방지를 위해 조금 대기 후 새로고침
-                setTimeout(() => router.refresh(), 500);
+                console.log('Success! Redirecting to home...');
+                // router.push 대신 window.location을 사용하여 세션 쿠키가 확실히 반영된 상태로 새로고침하며 이동하도록 함
+                window.location.href = '/';
             }
         } catch (err: any) {
             console.error('Login caught error:', err);
