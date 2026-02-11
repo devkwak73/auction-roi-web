@@ -16,18 +16,30 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         setErrorMsg('');
+        
+        console.log('Attempting login for:', email);
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-        if (error) {
-            setErrorMsg(error.message);
+            console.log('Login result:', { data, error });
+
+            if (error) {
+                setErrorMsg(error.message);
+                setLoading(false);
+            } else {
+                console.log('Success! Redirecting...');
+                router.push('/');
+                // 브라우저 캐시 문제 방지를 위해 조금 대기 후 새로고침
+                setTimeout(() => router.refresh(), 500);
+            }
+        } catch (err: any) {
+            console.error('Login caught error:', err);
+            setErrorMsg('시스템 오류가 발생했습니다: ' + err.message);
             setLoading(false);
-        } else {
-            router.push('/');
-            router.refresh();
         }
     };
 
